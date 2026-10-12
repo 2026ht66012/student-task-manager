@@ -23,6 +23,7 @@ pipeline {
             steps {
                 echo 'Running automated tests'
                 sh '''
+                    export PYTHONPATH=.
                     .venv/bin/pytest -q
                 '''
             }
