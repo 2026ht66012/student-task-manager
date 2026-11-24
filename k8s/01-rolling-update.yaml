@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-rolling
+  labels:
+    app: aceest-fitness
+    strategy: rolling
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      strategy: rolling
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        strategy: rolling
+    spec:
+      containers:
+        - name: aceest-fitness
+          image: 2026ht66012/aceest-fitness:v4.0.0
+          ports:
+            - containerPort: 5000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-rolling-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: aceest-fitness
+    strategy: rolling
+  ports:
+    - port: 80
+      targetPort: 5000
