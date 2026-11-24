@@ -1,18 +1,17 @@
-# Use lightweight official Python image
 FROM python:3.9-slim
 
-# Set working directory inside the container
+ARG APP_VERSION=v4.0.0
+ENV APP_VERSION=${APP_VERSION}
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code and assets
 COPY . .
 
-# Expose the Flask port
 EXPOSE 5000
 
-# Define command to run the application
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "ACEest_Fitness:app"]
