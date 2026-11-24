@@ -60,15 +60,17 @@ pipeline {
 
         stage('Code Inspection') {
             steps {
-                echo 'Running static code quality check'
+                echo 'Running SonarQube static analysis and coverage inspection'
                 sh '''
-                    if command -v sonar-scanner >/dev/null 2>&1 && [ -n "${SONAR_HOST_URL}" ]; then
-                        sonar-scanner \
-                          -Dsonar.projectKey=aceest-fitness \
-                          -Dsonar.sources=ACEest_Fitness.py,app.py \
-                          -Dsonar.python.coverage.reportPaths=coverage.xml
+                    if command -v docker >/dev/null 2>&1 && [ -n "${SONAR_HOST_URL}" ] && [ -n "${SONAR_TOKEN}" ]; then
+                        docker run --rm \
+                          --add-host=host.docker.internal:host-gateway \
+                          -e SONAR_HOST_URL="${SONAR_HOST_URL}" \
+                          -e SONAR_TOKEN="${SONAR_TOKEN}" \
+                          -v "${WORKSPACE}:/usr/src" \
+                          sonarsource/sonar-scanner-cli
                     else
-                        echo "SonarQube scanner or SONAR_HOST_URL not yet active; verifying syntax with py_compile"
+                        echo "SONAR_HOST_URL or SONAR_TOKEN not set; running syntax check"
                         .venv/bin/python -m py_compile ACEest_Fitness.py app.py
                     fi
                 '''
